@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stg-custom-ns
+  namespace: argocd
+spec:
+  destination:
+    name: ''
+    namespace: stg-custom-ns
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: 'stg-custom-ns'
+    repoURL: 'https://github.com/trandungchien1982/argocd.git'
+    targetRevision: 02.TwoAppsIn2Namespaces
+  sources:
+    - path: stg-custom-ns
+      repoURL: 'https://github.com/trandungchien1982/argocd.git'
+      targetRevision: 02.TwoAppsIn2Namespaces
+    - path: main-service
+      repoURL: 'https://github.com/trandungchien1982/argocd.git'
+      targetRevision: 02.TwoAppsIn2Namespaces
+  project: default
+  syncPolicy:
+    syncOptions: []
+    automated:
+      prune: false
+      selfHeal: false

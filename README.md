@@ -20,66 +20,76 @@ D:\Projects\argocd
 
 ==============================================================
 
-# Ví dụ [01.HelloWorld]
+# Ví dụ [02.TwoAppsIn2Namespaces]
 ==============================================================
 
 
-**Tham khảo**
-- https://viblo.asia/p/kubernetes-practice-trien-khai-nodejs-microservice-tren-kubernetes-phan-2-automatic-update-config-with-argocd-Qbq5QBMJKD8#_argocd-3
-- https://argo-cd.readthedocs.io/en/stable/cli_installation/
+**Tham khảo mã nguồn dựng K8S với 2 Namespaces khác nhau dùng YAML files:**
+- https://github.com/trandungchien1982/k8s/tree/07.TwoPublicServicesWithDifferentNS
+- Ta cần map IP address 127.0.0.1 với 2 domain: `dev.chien.com` và `stg.chien.com`
 
-
-**Tiến hành cài đặt ArgoCD trên localhost để thực hành:**<br/>
-- Cài đặt ArgoCD bên trong 1 Kubernetes Cluster với namespace `argocd`
+**Tạo 2 Apps khác nhau trên những namespace riêng biệt:**<br/>
+- Namespace 01 có tên `dev-custom-ns` => Deploy xong sẽ ra URL: http://dev.chien.com:7100
+- Namespace 02 có tên `stg-custom-ns` => Deploy xong sẽ ra URL: http://stg.chien.com:7100
+- Ta sẽ dùng chung config k8s có trong `/main-service` cho 2 Namespaces ở trên
+- Bản thân New Apps khi tạo ra thì ta có thể điều chỉnh file YAML và tiến hành customize New Apps dựa vào file YAML config.
 ```shell
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-```
-- Cài đặt ArgoCD CLI
-```shell
-curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-chmod +x /usr/local/bin/argocd
+  ArgoCD-NewApp-dev.yaml
+  ArgoCD-NewApp-stg.yaml
 ```
 
-- Kiểm tra các Pods liên quan đến ArgoCD đã chạy thành công hay chưa
+- Kiểm tra các pods đang chạy trên namespace `dev-custom-ns`:
 ```shell
-kubectl get pod -n argocd
+kubectl get pod -n dev-custom-ns
 ----------------------------------------------------------------------------------------------
-NAME                                                READY   STATUS    RESTARTS      AGE
-argocd-applicationset-controller-6b5b54d544-4h8mh   1/1     Running   1 (80m ago)   13h
-argocd-notifications-controller-746457787-zjlht     1/1     Running   1 (80m ago)   13h
-argocd-application-controller-0                     1/1     Running   1 (80m ago)   13h
-argocd-dex-server-7656cd55f4-jjh4p                  1/1     Running   3 (80m ago)   13h
-argocd-server-5db7487c98-qszpj                      1/1     Running   1 (80m ago)   13h
-argocd-redis-774dbf45f8-57v2f                       1/1     Running   1 (80m ago)   13h
-argocd-repo-server-76d7968f94-r75wx                 1/1     Running   1 (80m ago)   13h
+NAME                                   READY   STATUS    RESTARTS   AGE
+service1-deployment-66455d7d4f-9vjz6   1/1     Running   0          12m
 ```
 
-- Lấy password mặc định của `admin` 
+- Kiểm tra các pods đang chạy trên namespace `stg-custom-ns`:
 ```shell
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
------------------------------------------------------------------------------------------------------
-sQWSd6mQzvxBuQBt
+kubectl get pod -n stg-custom-ns
+----------------------------------------------------------------------------------------------
+NAME                                   READY   STATUS    RESTARTS   AGE
+service1-deployment-66455d7d4f-f8gdt   1/1     Running   0          6m33s
 ```
 
-- Tiến hành Port Forwarding để truy cập vào trang chủ ArgoCD.<br>
-Do ta dùng **https** trên **localhost** nên cần chọn _proceed to localhost(unsafe)_
+**Kiểm tra toàn bộ thông tin K8S dùng K9S CLI:**
 ```shell
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-----------------------------------------------------------------
-Forwarding from 127.0.0.1:8080 -> 8080
-Forwarding from [::1]:8080 -> 8080
+  k9s
+  ----------------------------------------------------------------------------------------------
+  Context: k3d-k3s-dev                              <0> all       <a>      Attach     <l>       Logs               <y> YAML                                          ____  __.________        
+  Cluster: k3d-k3s-dev                              <1> default   <ctrl-d> Delete     <p>       Logs Previous                                                       |    |/ _/   __   \______ 
+  User:    admin@k3d-k3s-dev                                      <d>      Describe   <shift-f> Port-Forward                                                        |      < \____    /  ___/ 
+  K9s Rev: v0.27.4                                                <e>      Edit       <s>       Shell                                                               |    |  \   /    /\___ \  
+  K8s Rev: v1.23.6+k3s1                                           <?>      Help       <n>       Show Node                                                           |____|__ \ /____//____  > 
+  CPU:     1%                                                     <ctrl-k> Kill       <f>       Show PortForward                                                            \/            \/  
+  MEM:     1%                                                                                                                                                                                 
+┌────────────────────────────────────────────────────────────────────────────────────── Pods(all)[17] ──────────────────────────────────────────────────────────────────────────────────────┐
+│ NAMESPACE↑      NAME                                                PF  READY   RESTARTS STATUS       CPU  MEM  %CPU/R  %CPU/L  %MEM/R  %MEM/L IP           NODE                   AGE    │
+│ argocd          argocd-application-controller-0                     ●   1/1            4 Running        9   70     n/a     n/a     n/a     n/a 10.42.1.56   k3d-k3s-dev-agent-0    37h    │
+│ argocd          argocd-applicationset-controller-6b5b54d544-4h8mh   ●   1/1            4 Running        1   19     n/a     n/a     n/a     n/a 10.42.1.51   k3d-k3s-dev-agent-0    37h    │
+│ argocd          argocd-dex-server-7656cd55f4-jjh4p                  ●   1/1            6 Running        1   16     n/a     n/a     n/a     n/a 10.42.0.46   k3d-k3s-dev-server-0   37h    │
+│ argocd          argocd-notifications-controller-746457787-zjlht     ●   1/1            4 Running        1   18     n/a     n/a     n/a     n/a 10.42.1.52   k3d-k3s-dev-agent-0    37h    │
+│ argocd          argocd-redis-774dbf45f8-57v2f                       ●   1/1            4 Running        2    3     n/a     n/a     n/a     n/a 10.42.0.42   k3d-k3s-dev-server-0   37h    │
+│ argocd          argocd-repo-server-76d7968f94-r75wx                 ●   1/1            4 Running        1   41     n/a     n/a     n/a     n/a 10.42.0.40   k3d-k3s-dev-server-0   37h    │
+│ argocd          argocd-server-5db7487c98-qszpj                      ●   1/1            4 Running        1   27     n/a     n/a     n/a     n/a 10.42.1.49   k3d-k3s-dev-agent-0    37h    │
+│ dev-custom-ns   service1-deployment-66455d7d4f-9vjz6                ●   1/1            0 Running        0    1       0       0       1       1 10.42.0.47   k3d-k3s-dev-server-0   20m    │
+│ kube-system     coredns-d76bd69b-zjxkq                              ●   1/1            4 Running        3   14       3     n/a      20       8 10.42.0.41   k3d-k3s-dev-server-0   37h    │
+│ kube-system     helm-install-traefik-7ksdr                          ●   0/1            0 Completed      0    0     n/a     n/a     n/a     n/a 10.42.0.4    k3d-k3s-dev-server-0   37h    │
+│ kube-system     helm-install-traefik-crd-t6qk6                      ●   0/1            0 Completed      0    0     n/a     n/a     n/a     n/a 10.42.1.2    k3d-k3s-dev-agent-0    37h    │
+│ kube-system     local-path-provisioner-6c79684f77-vrnx8             ●   1/1            7 Running        1    6     n/a     n/a     n/a     n/a 10.42.0.45   k3d-k3s-dev-server-0   37h    │
+│ kube-system     metrics-server-7cd5fcb6b7-g7npt                     ●   1/1            4 Running        8   18       8     n/a      26     n/a 10.42.1.48   k3d-k3s-dev-agent-0    37h    │
+│ kube-system     svclb-traefik-8sbgv                                 ●   2/2            8 Running        0    2     n/a     n/a     n/a     n/a 10.42.1.47   k3d-k3s-dev-agent-0    37h    │
+│ kube-system     svclb-traefik-tfpcw                                 ●   2/2            8 Running        0    1     n/a     n/a     n/a     n/a 10.42.0.39   k3d-k3s-dev-server-0   37h    │
+│ kube-system     traefik-df4ff85d6-dt7bn                             ●   1/1            4 Running        1   22     n/a     n/a     n/a     n/a 10.42.1.50   k3d-k3s-dev-agent-0    37h    │
+│ stg-custom-ns   service1-deployment-66455d7d4f-f8gdt                ●   1/1            0 Running        0    1       0       0       1       1 10.42.1.57   k3d-k3s-dev-agent-0    13m    │
+│                                                                                                                                                                                           │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Truy cập trang quản lý ArgoCD**<br/>
+**Truy cập vào các trang tương ứng:**
 ```shell
-http://localhost:8080
-User: admin
-Password: {mặc định, lấy từ script CLI ở trên: sQWSd6mQzvxBuQBt}
-(Trong AdminUI, ta có chỗ để change password admin)
-```
-**Tiến hành tạo 1 New App trên ArgoCD để tự động hóa quy trình deploy ví dụ HelloWorld của K8S**
-- File K8S config tham khảo ở đây: https://github.com/trandungchien1982/k8s/tree/01.HelloWorld
-```shell
-https://github.com/trandungchien1982/k8s/blob/01.HelloWorld/deploy-nginx-hello-world.yaml
+  http://dev.chien.com:7100 => DEV UI
+  http://stg.chien.com:7100 => STG UI
 ```
