@@ -20,38 +20,16 @@ D:\Projects\argocd
 
 ==============================================================
 
-# Ví dụ [02.TwoAppsIn2Namespaces]
+# Ví dụ [03.UsingHelm]
 ==============================================================
 
 
-**Tham khảo mã nguồn dựng K8S với 2 Namespaces khác nhau dùng YAML files:**
-- https://github.com/trandungchien1982/k8s/tree/07.TwoPublicServicesWithDifferentNS
-- Ta cần map IP address 127.0.0.1 với 2 domain: `dev.chien.com` và `stg.chien.com`
-
-**Tạo 2 Apps khác nhau trên những namespace riêng biệt:**<br/>
-- Namespace 01 có tên `dev-custom-ns` => Deploy xong sẽ ra URL: http://dev.chien.com:7100
-- Namespace 02 có tên `stg-custom-ns` => Deploy xong sẽ ra URL: http://stg.chien.com:7100
-- Ta sẽ dùng chung config k8s có trong `/main-service` cho 2 Namespaces ở trên
+**Tiến hành deploy apps Java + k8s sử dụng Helm bằng ArgoCD:**
+<br/>(Hiện tại đang bị stuck ở bước tạo App mới trên ArgoCD - Sẽ quay lại chi tiết sau ...)
+- https://github.com/trandungchien1982/k8s/tree/08.ShowAllEnvs%2BHelm
 - Bản thân New Apps khi tạo ra thì ta có thể điều chỉnh file YAML và tiến hành customize New Apps dựa vào file YAML config.
 ```shell
-  ArgoCD-NewApp-dev.yaml
-  ArgoCD-NewApp-stg.yaml
-```
-
-- Kiểm tra các pods đang chạy trên namespace `dev-custom-ns`:
-```shell
-kubectl get pod -n dev-custom-ns
-----------------------------------------------------------------------------------------------
-NAME                                   READY   STATUS    RESTARTS   AGE
-service1-deployment-66455d7d4f-9vjz6   1/1     Running   0          12m
-```
-
-- Kiểm tra các pods đang chạy trên namespace `stg-custom-ns`:
-```shell
-kubectl get pod -n stg-custom-ns
-----------------------------------------------------------------------------------------------
-NAME                                   READY   STATUS    RESTARTS   AGE
-service1-deployment-66455d7d4f-f8gdt   1/1     Running   0          6m33s
+ArgoCD-NewApp-Using-Helm.yaml
 ```
 
 **Kiểm tra toàn bộ thông tin K8S dùng K9S CLI:**
@@ -74,22 +52,10 @@ service1-deployment-66455d7d4f-f8gdt   1/1     Running   0          6m33s
 │ argocd          argocd-redis-774dbf45f8-57v2f                       ●   1/1            4 Running        2    3     n/a     n/a     n/a     n/a 10.42.0.42   k3d-k3s-dev-server-0   37h    │
 │ argocd          argocd-repo-server-76d7968f94-r75wx                 ●   1/1            4 Running        1   41     n/a     n/a     n/a     n/a 10.42.0.40   k3d-k3s-dev-server-0   37h    │
 │ argocd          argocd-server-5db7487c98-qszpj                      ●   1/1            4 Running        1   27     n/a     n/a     n/a     n/a 10.42.1.49   k3d-k3s-dev-agent-0    37h    │
-│ dev-custom-ns   service1-deployment-66455d7d4f-9vjz6                ●   1/1            0 Running        0    1       0       0       1       1 10.42.0.47   k3d-k3s-dev-server-0   20m    │
-│ kube-system     coredns-d76bd69b-zjxkq                              ●   1/1            4 Running        3   14       3     n/a      20       8 10.42.0.41   k3d-k3s-dev-server-0   37h    │
-│ kube-system     helm-install-traefik-7ksdr                          ●   0/1            0 Completed      0    0     n/a     n/a     n/a     n/a 10.42.0.4    k3d-k3s-dev-server-0   37h    │
-│ kube-system     helm-install-traefik-crd-t6qk6                      ●   0/1            0 Completed      0    0     n/a     n/a     n/a     n/a 10.42.1.2    k3d-k3s-dev-agent-0    37h    │
-│ kube-system     local-path-provisioner-6c79684f77-vrnx8             ●   1/1            7 Running        1    6     n/a     n/a     n/a     n/a 10.42.0.45   k3d-k3s-dev-server-0   37h    │
-│ kube-system     metrics-server-7cd5fcb6b7-g7npt                     ●   1/1            4 Running        8   18       8     n/a      26     n/a 10.42.1.48   k3d-k3s-dev-agent-0    37h    │
-│ kube-system     svclb-traefik-8sbgv                                 ●   2/2            8 Running        0    2     n/a     n/a     n/a     n/a 10.42.1.47   k3d-k3s-dev-agent-0    37h    │
-│ kube-system     svclb-traefik-tfpcw                                 ●   2/2            8 Running        0    1     n/a     n/a     n/a     n/a 10.42.0.39   k3d-k3s-dev-server-0   37h    │
-│ kube-system     traefik-df4ff85d6-dt7bn                             ●   1/1            4 Running        1   22     n/a     n/a     n/a     n/a 10.42.1.50   k3d-k3s-dev-agent-0    37h    │
-│ stg-custom-ns   service1-deployment-66455d7d4f-f8gdt                ●   1/1            0 Running        0    1       0       0       1       1 10.42.1.57   k3d-k3s-dev-agent-0    13m    │
-│                                                                                                                                                                                           │
 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Truy cập vào các trang tương ứng:**
 ```shell
-  http://dev.chien.com:7100 => DEV UI
-  http://stg.chien.com:7100 => STG UI
+  http://localhost:7100/show-env-helm
 ```

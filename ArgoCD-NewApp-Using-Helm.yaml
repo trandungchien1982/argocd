@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: deploy_using_helm
+  namespace: argocd
+spec:
+  destination:
+    name: ''
+    namespace: default
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: my-helm-chart
+    repoURL: 'https://github.com/trandungchien1982/argocd.git'
+    targetRevision: 03.UsingHelm
+    helm:
+      valueFiles:
+        - values.yaml
+    chart: dragon-chart
+  sources: []
+  project: default
+  syncPolicy:
+    syncOptions: []
+    automated:
+      prune: false
+      selfHeal: true
