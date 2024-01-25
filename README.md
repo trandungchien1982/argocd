@@ -96,3 +96,5 @@ service1-deployment-66455d7d4f-f8gdt   1/1     Running   0          6m33s
 
 3. Phiên bản thứ ba
 4. Phiên bản thứ 4
+5. Cai tien version 4-1
+6. Cai tien version 4-2
