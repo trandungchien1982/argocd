@@ -93,3 +93,5 @@ service1-deployment-66455d7d4f-f8gdt   1/1     Running   0          6m33s
   http://dev.chien.com:7100 => DEV UI
   http://stg.chien.com:7100 => STG UI
 ```
+
+3. Phiên bản thứ ba
